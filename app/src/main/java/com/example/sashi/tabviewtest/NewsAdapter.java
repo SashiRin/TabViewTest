@@ -49,7 +49,13 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder> {
         holder.timeStamp.setText(news.getTimeStamp());
 //        Glide.with(mContext).load(news.getRegionGifUrl()).into(holder.regionImage);
 //        holder.regionImage.setImageResource(R.drawable.ic_launcher_background);
-        GlideApp.with(mContext).load(news.getRegionGifUrl()).into(holder.regionImage);
+//        GlideApp.with(mContext).load(news.getRegionGifUrl()).into(holder.regionImage);
+        GlideApp.with(mContext)
+                .load(news.getRegionGifUrl())
+                .override(60, 40)
+//                .centerCrop()
+//                .placeholder(R.drawable.ic_launcher_foreground)
+                .into(holder.regionImage);
     }
 
     @Override
