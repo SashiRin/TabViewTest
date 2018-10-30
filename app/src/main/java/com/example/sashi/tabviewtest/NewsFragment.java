@@ -30,8 +30,10 @@ public class NewsFragment extends Fragment {
     private RecyclerView yesterdayNews;
     private RecyclerView previousNews;
 
-    private BannerNews bannerNews;
+    private BannerNews bannerNews = new BannerNews();
     private List<News> newsList = new ArrayList<>();
+    private NewsAdapter adapter;
+
 
     public NewsFragment() {
     }
@@ -52,25 +54,17 @@ public class NewsFragment extends Fragment {
         yesterdayNews = rootView.findViewById(R.id.yesterday_news);
         previousNews = rootView.findViewById(R.id.previous_news);
 
-        GlideApp.with(getContext())
-                .load(bannerNews.getBannerPictureUrl())
-                .into(banner);
 
-        NewsAdapter adapter = new NewsAdapter(getContext(), newsList);
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         todayNews.setLayoutManager(layoutManager);
+        adapter = new NewsAdapter(getContext(), newsList);
         todayNews.setAdapter(adapter);
 
         return rootView;
     }
 
     private void initNews() {
-        bannerNews.setBannerPictureUrl();
-        bannerNews.setBannerNewsUrl();
-        News news = new News("https://static.hltv.org/images/bigflags/30x20/US.gif", "fnatic to play at PLG Grand Slam", "3 hours ago");
-        newsList.add(news);
-        newsList.add(news);
-        newsList.add(news);
+        new MyTask().execute();
     }
 
     private class MyTask extends AsyncTask<Void, Void, Void> {
@@ -83,21 +77,41 @@ public class NewsFragment extends Fragment {
                 String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36";
                 Document doc = Jsoup.connect("https://hltv.org/").userAgent(userAgent).get();
 
-                Elements newslines = doc.getElementsByClass("newsline");
-                for (Element newsline : newslines) {
-                    Elements imgTag = newsline.getElementsByTag("img");
-                    String regionUrl = imgTag.attr("src");
-                    Elements titleTags = newsline.getElementsByClass("newstext");
-                    String linkHref = newsline.attr("href");
-                    String title =
-
-
+                Element divIndex = doc.selectFirst("div.index");
+                Element bigImageNews = divIndex.selectFirst("a.big-image-news");
+//                Log.d("Jsoup", bigImageNews.toString());
+                String bannerNewsUrl = bigImageNews.attr("href");
+                String bannerPictureUrl = bigImageNews.getElementsByTag("img").attr("src");
+                Log.d("Jsoup", bannerPictureUrl);
+                bannerNews.setBannerNewsUrl(bannerNewsUrl);
+                bannerNews.setBannerPictureUrl(bannerPictureUrl);
+                Elements news = divIndex.select("a.newsline");
+                for (Element e : news) {
+//                    Log.d("Jsoup", e.select("div.newstext").text());
+                    String title = e.select("div.newstext").text();
+                    String regionGifUrl = e.select("img.newsflag").attr("src");
+                    newsList.add(new News(regionGifUrl, title, ""));
                 }
+//                Log.d("Jsoup", news.toString());
+//                Log.d("Jsoup", divIndex.toString());
+
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
             return null;
         }
+
+        @Override
+        protected void onPostExecute(Void result) {
+
+//            swipeRefreshLayout.setRefreshing(false);
+            GlideApp.with(getContext())
+                    .load(bannerNews.getBannerPictureUrl())
+                    .into(banner);
+            adapter.notifyDataSetChanged();
+        }
+    }
 }
 
 class BannerNews {
