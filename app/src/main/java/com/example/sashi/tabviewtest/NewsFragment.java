@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -23,7 +24,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class NewsFragment extends Fragment {
+public class NewsFragment extends Fragment implements SwipeRefreshLayout.OnRefreshListener {
 
     private ImageView banner;
     private RecyclerView todayNews;
@@ -33,6 +34,8 @@ public class NewsFragment extends Fragment {
     private BannerNews bannerNews = new BannerNews();
     private List<News> newsList = new ArrayList<>();
     private NewsAdapter adapter;
+
+    private SwipeRefreshLayout swipeRefreshLayout;
 
 
     public NewsFragment() {
@@ -44,6 +47,11 @@ public class NewsFragment extends Fragment {
         initNews();
     }
 
+    @Override
+    public void onRefresh() {
+        new MyTask().execute();
+    }
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -53,7 +61,15 @@ public class NewsFragment extends Fragment {
         todayNews = rootView.findViewById(R.id.today_news);
         yesterdayNews = rootView.findViewById(R.id.yesterday_news);
         previousNews = rootView.findViewById(R.id.previous_news);
+        swipeRefreshLayout = rootView.findViewById(R.id.swipe_refresh);
+        swipeRefreshLayout.setOnRefreshListener(this);
 
+        todayNews.setHasFixedSize(true);
+        todayNews.setNestedScrollingEnabled(false);
+        yesterdayNews.setHasFixedSize(true);
+        yesterdayNews.setNestedScrollingEnabled(false);
+        previousNews.setHasFixedSize(true);
+        previousNews.setNestedScrollingEnabled(false);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
         todayNews.setLayoutManager(layoutManager);
@@ -72,6 +88,7 @@ public class NewsFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... params) {
             try {
+                Log.d("Jsoup", "refresh start");
                 newsList.clear();
 
                 String userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36";
@@ -94,7 +111,7 @@ public class NewsFragment extends Fragment {
                 }
 //                Log.d("Jsoup", news.toString());
 //                Log.d("Jsoup", divIndex.toString());
-
+                Log.d("Jsoup", "refresh finish");
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -104,12 +121,11 @@ public class NewsFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Void result) {
-
-//            swipeRefreshLayout.setRefreshing(false);
             GlideApp.with(getContext())
                     .load(bannerNews.getBannerPictureUrl())
                     .into(banner);
             adapter.notifyDataSetChanged();
+            swipeRefreshLayout.setRefreshing(false);
         }
     }
 }
