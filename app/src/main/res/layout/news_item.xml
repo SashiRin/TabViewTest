@@ -12,7 +12,9 @@
         android:id="@+id/news_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp" />
+        android:layout_marginLeft="10dp"
+        android:textSize=""
+        android:height="20sp"/>
 
     <TextView
         android:id="@+id/news_time_stamp"
