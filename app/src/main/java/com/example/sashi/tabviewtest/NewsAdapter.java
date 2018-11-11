@@ -10,7 +10,10 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder> {
+import io.github.luizgrp.sectionedrecyclerviewadapter.SectionParameters;
+import io.github.luizgrp.sectionedrecyclerviewadapter.StatelessSection;
+
+public class NewsAdapter extends StatelessSection {
 
     private List<News> mNewsList;
 
@@ -29,9 +32,17 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder> {
         }
     }
 
-    public NewsAdapter(Context context, List<News> newsList) {
-        mContext = context;
+    public NewsAdapter(List<News> newsList) {
+        super(SectionParameters.builder()
+                .itemResourceId(R.layout.news_item)
+                .headerResourceId(R.layout.news_header)
+                .build());
         mNewsList = newsList;
+    }
+
+    @Override
+    public int getContentItemsTotal() {
+        return mNewsList.size();
     }
 
     @Override
@@ -57,10 +68,4 @@ public class NewsAdapter extends RecyclerView.Adapter<NewsAdapter.ViewHolder> {
 //                .placeholder(R.drawable.ic_launcher_foreground)
                 .into(holder.regionImage);
     }
-
-    @Override
-    public int getItemCount() {
-        return mNewsList.size();
-    }
-
 }
